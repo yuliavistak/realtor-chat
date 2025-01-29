@@ -8,7 +8,7 @@ from dotenv import load_dotenv
 
 
 load_dotenv()
-my_api_key = os.getenv('GOOGLE_API_KEY')
+my_api_key = st.secrets['GOOGLE_API_KEY']
 
 
 genai.configure(api_key=my_api_key)
@@ -86,7 +86,6 @@ def save_settings():
     """
     prompt = """From the chat history (conversation between chat-bot and user) extract \
 necessary information and structure it"""
-    print('helooooooooooo')
     # model_1 = genai.GenerativeModel("gemini-1.5-flash")
     result = chat.send_message(
         prompt,
@@ -94,7 +93,6 @@ necessary information and structure it"""
             response_mime_type="application/json", response_schema=list[Settings]
         ),
     )
-    print(result)
     return result
 
 
@@ -114,12 +112,6 @@ def typing_effect(text, container):
         output += char
         container.markdown(output)
         time.sleep(0.02)  # Adjust speed of typing here
-
-# model = genai.GenerativeModel("gemini-1.5-flash",
-#                                     system_instruction=instruction,
-#                                     tools=[save_settings, end_conv])
-
-
 
 settings = genai.protos.Schema(
     type = genai.protos.Type.OBJECT,
@@ -168,38 +160,16 @@ def run_chat():
             st.session_state.chat_history.append({"role": "user", "content": user_input})
             with st.chat_message("user"):
                 st.markdown(user_input)
-            print(chat.history)
             response = chat.send_message(
                 user_input
             )
-            print(response)
-            # if "function_call" in response.candidates[0].content.parts[1]:
-            #     with st.chat_message("assistant"):
-            #         assistant_placeholder = st.empty()
-            #         typing_effect(response.candidates[0].content.parts[1].function_call, assistant_placeholder)
-            #     st.session_state.chat_history.append({"role": "assistant", "content": response.candidates[0].content.parts[1].function_call})
 
-            # elif 'text' in response.candidates[0].content.parts[0]:
             with st.chat_message("assistant"):
                 assistant_placeholder = st.empty()
                 typing_effect(response.candidates[0].content.parts[0].text, assistant_placeholder)
-            # print(response.text)
                 st.session_state.chat_history.append({"role": "assistant", "content": response.text})
-            print(response)
-
-            print('\n')
-            print(len(chat.history))
 
             st.session_state.chat_history_model = chat.history
 
 
 run_chat()
-# save_settings()
-# while True:
-#     k = input('You: ')
-#     response = chat.send_message(
-#                 k
-#             )
-#     print(response)
-#     print(response.text)
-#     print(chat.history)
