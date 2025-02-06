@@ -1,4 +1,5 @@
 import time
+import os
 import streamlit as st
 import google.generativeai as genai
 import typing_extensions as typing
@@ -6,11 +7,12 @@ from dotenv import load_dotenv
 
 
 load_dotenv()
-my_api_key = st.secrets['GOOGLE_API_KEY']
+# my_api_key = st.secrets['GOOGLE_API_KEY']
+
+my_api_key = os.getenv('GOOGLE_API_KEY')
 
 
 genai.configure(api_key=my_api_key)
-
 
 # You are a virtual realtor looking for housing and apartments on the secondary market in Ukraine and Poland.
 
@@ -21,6 +23,9 @@ Your goal is to find out which apartments a person is interested in. Do not perf
 That means if the user ask the questions not related to the apartment search, do not answer these questions.
 
 Continue the conversation until you learn all the information that may be useful to the realtor.
+
+Ask questions like a human being.
+In general, have a conversation as a person to a person.
 
 Do not say hello if you have already said hello.
 
@@ -33,7 +38,7 @@ District and (or) street
 Number of rooms
 ....'
 
-If the user has not give all necessary information, follow these steps to ask questions
+If the user has not give all necessary information, follow these steps to ask questions one by one
 (ask only if necessary):
 
 1. Location description
@@ -132,7 +137,7 @@ def typing_effect(text, container):
     for char in text:
         output += char
         container.markdown(output)
-        # time.sleep(0.02)  # Adjust speed of typing here
+        time.sleep(0.02)  # Adjust speed of typing here
 
 
 model = genai.GenerativeModel("gemini-1.5-flash",
