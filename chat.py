@@ -7,7 +7,7 @@ from dotenv import load_dotenv
 
 
 load_dotenv()
-# my_api_key = st.secrets['GOOGLE_API_KEY']
+my_api_key = st.secrets['GOOGLE_API_KEY']
 
 my_api_key = os.getenv('GOOGLE_API_KEY')
 
@@ -102,6 +102,10 @@ def save_settings():
     Call it whenever the user has aswered all questionns and there is all necessary info.
     If user did not give clear answer, save that answer, do not create anything else.
     """
+    prompt = """From the chat history (conversation between chat-bot and user) extract \
+necessary information and structure it"""
+    # model_1 = genai.GenerativeModel("gemini-1.5-flash")
+    result = chat.send_message(
     prompt = f"""From the chat history (conversation between chat-bot and user) extract \
 necessary information:
 {st.session_state.chat_history}"""
@@ -114,6 +118,15 @@ necessary information:
             response_mime_type="application/json", response_schema=list[Settings]
         ),
     )
+    return result
+
+
+def end_conv():
+    """
+    Function which is called in the end of the conversation.
+    The status the 'chat_status' setted as True (output)
+    """
+    st.session_state.chat_end = True
 
     print('RESULT OF FUNCTION CALLING')
 
@@ -139,6 +152,36 @@ def typing_effect(text, container):
         container.markdown(output)
         time.sleep(0.02)  # Adjust speed of typing here
 
+settings = genai.protos.Schema(
+    type = genai.protos.Type.OBJECT,
+    properties = {
+        'city':  genai.protos.Schema(type=genai.protos.Type.STRING),
+        'rooms_number':  genai.protos.Schema(type=genai.protos.Type.INTEGER),
+        'rental_budget': genai.protos.Schema(type=genai.protos.Type.INTEGER),
+        'move_in_period': genai.protos.Schema(type=genai.protos.Type.STRING),
+        'district': genai.protos.Schema(type=genai.protos.Type.STRING),
+        'street': genai.protos.Schema(type=genai.protos.Type.STRING),
+        'floor': genai.protos.Schema(type=genai.protos.Type.STRING),
+        'residents_number': genai.protos.Schema(type=genai.protos.Type.STRING),
+        'pets_friendly': genai.protos.Schema(type=genai.protos.Type.STRING),
+        'child_friendly': genai.protos.Schema(type=genai.protos.Type.STRING)
+    },
+    required=['city', 'rooms_number', 'floor', 'pets_friendly']
+)
+
+
+add_to_database = genai.protos.FunctionDeclaration(
+    name="add_to_database",
+    description=textwrap.dedent("""\
+        Structure info about the property at the end of the conversation.
+        """),
+    parameters=genai.protos.Schema(
+        type=genai.protos.Type.OBJECT,
+        properties = {
+            'settings': settings
+        }
+    )
+)
 
 model = genai.GenerativeModel("gemini-1.5-flash",
                                     system_instruction=instruction,
@@ -182,9 +225,11 @@ def run_chat():
             response = chat.send_message(
                 user_input
             )
+
             with st.chat_message("assistant"):
                 assistant_placeholder = st.empty()
                 typing_effect(response.candidates[0].content.parts[0].text, assistant_placeholder)
+                st.session_state.chat_history.append({"role": "assistant", "content": response.text})
                 st.session_state.chat_history.append({"role": "assistant",
                                                       "content":
                                                       response.candidates[0].content.parts[0].text})
