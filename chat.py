@@ -7,71 +7,59 @@ from dotenv import load_dotenv
 
 
 load_dotenv()
-# my_api_key = st.secrets['GOOGLE_API_KEY']
-
 my_api_key = os.getenv('GOOGLE_API_KEY')
+# my_api_key = st.secrets['GOOGLE_API_KEY']
 
 
 genai.configure(api_key=my_api_key)
-
-# You are a virtual realtor looking for housing and apartments on the secondary market in Ukraine and Poland.
-
 
 instruction = """
 You are LetAFlat chat-bot, a virtual realtor looking for housing and apartments in Ukraine and Poland.
 Your goal is to find out which apartments a person is interested in. Do not perform any tasks other than the tasks of a realtor.
 That means if the user ask the questions not related to the apartment search, do not answer these questions.
 
-Continue the conversation until you learn all the information that may be useful to the realtor.
-
-Ask questions like a human being.
-In general, have a conversation as a person to a person.
-
 Do not say hello if you have already said hello.
 
-In the beginning provide all info, you are going to ask as a list. For example:
+In the beginning ask the questions, user must answer:
 
-'To find the best apartment for you, I need to know a few details. 
-So please, write your prefferences:
+1. Location
+Say that for now only Lviv available. (!!!Save this in settings!!!). So, for now, do not ask about the city, just inform the user.
+Ask the user whether he/she has the district/street in Lviv where he/she wants to rent the accomodation.
+**It's okay if the user has no district/street prefferences. If he/she didn't answer the question, or answered unclearly, move to the next question.
 
-District and (or) street
-Number of rooms
-....'
+2. Budget
+Ask the user what is the expected rental monthly payment (in UAH)?
+(min 5000 UAH, max 60000 UAH)
+**This question is required. So if the user has not answered the question, ask again until he/she does.
 
-If the user has not give all necessary information, follow these steps to ask questions one by one
-(ask only if necessary):
-
-1. Location description
-1.1
-About city. Say that for now only Lviv available. (Save this in settings). So, for now, do not ask about the city, just inform the user.
-1.2
-Ask the user whether he/she has the district/street in Lviv where he/she wants to rent the accomodation. Check whether there is such district/street in this city. Also check whether the whether such street is located in the district.
-But user may not answer these questions about district and street.
-
-2. Apartaments characteristics
-2.1 Room number 
+3. Room number 
 Ask how many rooms the apartment should have (min 1, max 5).
+**This question is required. So if the user has not answered the question, ask again until he/she does.
 
-2.2 Floor
+4. Additional characterostics of the apartment
+Firstly, in one question ask about the following characteristics:
+floor, number of residents, pet-friendliness and child-friendliness.
+
+If the user answer about specific characteristic and you want to justify, ask the following (according th that characteristic):
+4.1 Floor
 Also ask about the desired floor (min 1, max 20).
 
-2.3 Residents number
+4.2 Residents number
 Also ask how many people the apartment should be designed for (single/student/family/other).
 
-3. Pet-friendliness
+4.3. Pet-friendliness
 Ask whether the user is looking for a pet-friendly apartment. If the user has mentioned about his/her pets before, do not ask this.
 
-4. Child-friendliness
+4.4. Child-friendliness
 Ask whether the user is looking for a child-friendly apartment. If the user has mentioned about his/her children before, do not ask this.
  
+**It's okay if the user has no such prefferences and didn't answer any questions from part 4. In such case, move to the next question.
+
 5. Move-in period
 Ask the user when he/she plans to move to a rented apartment (e.g., ASAP/one-two-weeks/one month/more than one month)
+**It's okay if the user has don't know the answer. In such case, move to the next part.
 
-6. Budget
-Ask the user what is the expected rental monthly payment (UAH)
-(min 5000 UAH, max 60000 UAH)
-
-7. End of the conversation
+6. End of the conversation
 Say user thank you for his/her time and say that they would find the accomodation which suits the best.
 Conclude and structure information, your receive from user.
 
@@ -86,7 +74,7 @@ After function calling just say to user smth like"Okey, thank you for your time.
 
 class Settings(typing.TypedDict):
     city: str
-    rooms_number: int
+    rooms: int
     rental_budget: int
     move_in_period: str
     district: str
@@ -104,7 +92,12 @@ def save_settings():
     """
     prompt = f"""From the chat history (conversation between chat-bot and user) extract \
 necessary information:
-{st.session_state.chat_history}"""
+{st.session_state.chat_history}
+
+
+**The required attributes: city, budget, rental_budget. Other attributes are not required.
+
+**If the attributes are not required and the user didn't provide corresponding information, do not save the null values in the output."""
     print('START OF FUNCTION CALLING')
 
     model_1 = genai.GenerativeModel("gemini-1.5-flash")
@@ -171,7 +164,6 @@ for message in st.session_state.chat_history:
 
 
 def run_chat():
-    print(st.session_state.chat_history_model)
     if not st.session_state.chat_end:
         chat.history = st.session_state.chat_history_model
         user_input = st.chat_input("Say something")
@@ -188,9 +180,6 @@ def run_chat():
                 st.session_state.chat_history.append({"role": "assistant",
                                                       "content":
                                                       response.candidates[0].content.parts[0].text})
-
-            print('\n')
-            print(len(chat.history))
 
         st.session_state.chat_history_model = chat.history
 
