@@ -20,9 +20,11 @@ You also may create `.toml` file and paste the key (for streamlit app, but for n
    ```
 
 ### Architecture
-**1. Greeting Step**
-   In this step, the chatbot greets with the user and receive the general info what the user is looking for. The chatbot checking whether the user mentions some important info, which describes some characteristics
-**2. Asking Step**
-   In this step the chatbot iteratively asks about characteristics that are not yet available. If the user doesn't answer completely on the specific question about required characteristic, the chatbot reasks the user until he/she provides enough information 
-**3. Creating and Approving Summary Step**
+**1. Greeting Step**\
+   In this step, the chatbot greets with the user and receive the general info what the user is looking for. The chatbot checking whether the user mentions some important info, which describes some characteristics.
+
+**2. Asking Step**\
+   In this step the chatbot iteratively asks about characteristics that are not yet available. If the user doesn't answer completely on the specific question about required characteristic, the chatbot reasks the user until he/she provides enough information.
+
+**3. Creating and Approving Summary Step**\
    The chatbot provides the summary and asks user whether all gathered info is correct. Also if the user wants to change something, the chatbot extracts the info (in the same way as in the first step) and saves the updated summary.
