@@ -3,10 +3,11 @@ import time
 import google.generativeai as genai
 # import typing_extensions as typing
 from dotenv import load_dotenv
+import os
 
 
 load_dotenv()
-my_api_key = st.secrets['GOOGLE_API_KEY']
+my_api_key = os.getenv('GOOGLE_API_KEY')
 
 
 genai.configure(api_key=my_api_key)
@@ -137,7 +138,7 @@ def save_ans(key: str, history: list):
     print('\nSAVED--------------\n')
     # print(settings)
 
-def parse_first(history: list|dict):
+def parse_first(history):
     """
     Parse info from answer: whether there are mentioned characteristics and their values
     """
@@ -187,7 +188,7 @@ def typing_effect(text, container):
     for char in text:
         output += char
         container.markdown(output)
-        # time.sleep(0.02)  # Adjust speed of typing here
+        time.sleep(0.02)  # Adjust speed of typing here
     return
 
 def main() -> dict:
@@ -308,6 +309,5 @@ def main() -> dict:
         approved = approve(approve_history)
 
     print('Thank you for your time!')
-
 
 main()
