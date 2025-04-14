@@ -28,3 +28,18 @@ You also may create `.toml` file and paste the key (for streamlit app, but for n
 
 **3. Creating and Approving Summary Step**\
    The chatbot provides the summary and asks user whether all gathered info is correct. Also if the user wants to change something, the chatbot extracts the info (in the same way as in the first step) and saves the updated summary.
+
+### Docker
+
+1) Move to the `./renter` folder
+   ```
+   cd renter
+   ```
+2) Build image
+   ```
+   docker build -t <your-image-name> .
+   ```
+3) Run the container to interact with the user (specific command)
+   ```
+   docker run -it <your-image-name>
+   ```
